@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreProveedorRequest;
+use App\Http\Requests\UpdateProveedorRequest;
 use App\Models\Proveedor;
 use App\Services\ProveedorService;
 use Inertia\Inertia;
@@ -31,7 +32,7 @@ class ProveedorController extends Controller
         return redirect()->back()->with('message', 'Proveedor registrado exitosamente.');
     }
 
-    public function update(StoreProveedorRequest $request, Proveedor $proveedor): RedirectResponse
+    public function update(UpdateProveedorRequest $request, Proveedor $proveedor): RedirectResponse
     {
         $this->proveedorService->actualizar($proveedor, $request->validated());
         return redirect()->back()->with('message', 'Proveedor actualizado correctamente.');

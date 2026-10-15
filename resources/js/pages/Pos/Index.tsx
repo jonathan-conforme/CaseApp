@@ -1,7 +1,28 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { useForm, usePage } from '@inertiajs/react';
+import { useForm, usePage, Head } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
+import { type BreadcrumbItem } from '@/types';
 import TicketPrint, { VentaTicket } from '@/components/TicketPrint';
+import {
+    Search,
+    Barcode,
+    ShoppingCart,
+    Plus,
+    Minus,
+    Trash2,
+    Coins,
+    CreditCard,
+    DollarSign,
+    CheckCircle2,
+    AlertCircle,
+    X,
+    Tag,
+    Boxes,
+    Zap,
+    Banknote,
+    QrCode,
+    Smartphone,
+} from 'lucide-react';
 
 interface Categoria {
     id: number;
@@ -27,10 +48,19 @@ interface ItemCarrito {
     stock_actual: number;
 }
 
+interface PaginatedResponse<T> {
+    data: T[];
+    total: number;
+}
+
 interface Props {
-    productos: Producto[];
+    productos: Producto[] | PaginatedResponse<Producto>;
     tasaVes: number;
 }
+
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Punto de Venta (POS)', href: '/pos' },
+];
 
 export default function Index({ productos, tasaVes }: Props) {
     const { flash, errors: pageErrors } = usePage().props as any;
@@ -39,6 +69,13 @@ export default function Index({ productos, tasaVes }: Props) {
 
     const [busqueda, setBusqueda] = useState('');
     const [carrito, setCarrito] = useState<ItemCarrito[]>([]);
+
+    // Normaliza 'productos' para evitar errores si viene de un paginate()
+    const listaProductos = useMemo<Producto[]>(() => {
+        if (Array.isArray(productos)) return productos;
+        if (productos && Array.isArray((productos as any).data)) return (productos as any).data;
+        return [];
+    }, [productos]);
 
     const { data, setData, post, processing, reset } = useForm({
         metodo_pago: 'efectivo_usd',
@@ -68,18 +105,20 @@ export default function Index({ productos, tasaVes }: Props) {
 
     // Filtrar productos por búsqueda
     const productosFiltrados = useMemo(() => {
-        if (!busqueda.trim()) return productos;
+        if (!busqueda.trim()) return listaProductos;
         const q = busqueda.toLowerCase();
-        return productos.filter(
+        return listaProductos.filter(
             (p) =>
                 p.nombre.toLowerCase().includes(q) ||
                 (p.sku && p.sku.toLowerCase().includes(q)) ||
                 (p.codigo_barras && p.codigo_barras.toLowerCase().includes(q))
         );
-    }, [busqueda, productos]);
+    }, [busqueda, listaProductos]);
 
     // Agregar producto al carrito
     const agregarAlCarrito = (producto: Producto) => {
+        if (producto.stock_actual <= 0) return;
+
         setCarrito((prev) => {
             const existente = prev.find((item) => item.producto_id === producto.id);
             if (existente) {
@@ -97,7 +136,7 @@ export default function Index({ productos, tasaVes }: Props) {
                     nombre: producto.nombre,
                     sku: producto.sku,
                     cantidad: 1,
-                    precio_unitario_usd: producto.precio_venta_usd,
+                    precio_unitario_usd: Number(producto.precio_venta_usd),
                     stock_actual: producto.stock_actual,
                 },
             ];
@@ -108,7 +147,7 @@ export default function Index({ productos, tasaVes }: Props) {
     const handleKeyDownSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
             e.preventDefault();
-            const coincidenciaExacta = productos.find(
+            const coincidenciaExacta = listaProductos.find(
                 (p) => p.codigo_barras === busqueda || p.sku === busqueda
             );
             if (coincidenciaExacta) {
@@ -165,28 +204,35 @@ export default function Index({ productos, tasaVes }: Props) {
     };
 
     return (
-        <AppLayout breadcrumbs={[{ title: 'Punto de Venta (POS)', href: '/pos' }]}>
-            <div className="p-4 max-w-[1600px] mx-auto h-[calc(100vh-80px)] flex flex-col gap-4">
-                
+        <AppLayout breadcrumbs={breadcrumbs}>
+            <Head title="Punto de Venta (POS)" />
+
+            <div className="min-h-[calc(100vh-80px)] bg-[#06141B] text-[#CCD0CF] p-3 md:p-6 flex flex-col gap-4">
+
                 {/* Banner de Errores o Mensajes */}
                 {pageErrors?.error && (
-                    <div className="p-3 bg-red-100 border border-red-300 text-red-800 rounded-lg text-sm">
-                        {pageErrors.error}
+                    <div className="flex items-center gap-3 p-3 bg-[#11212D] border border-rose-500/30 text-rose-300 rounded-xl text-xs font-medium shadow-sm">
+                        <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                        <span>{pageErrors.error}</span>
                     </div>
                 )}
                 {flash?.message && (
-                    <div className="p-3 bg-green-100 border border-green-300 text-green-800 rounded-lg text-sm">
-                        {flash.message}
+                    <div className="flex items-center gap-3 p-3 bg-[#11212D] border border-emerald-500/30 text-emerald-300 rounded-xl text-xs font-medium shadow-sm">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <span>{flash.message}</span>
                     </div>
                 )}
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1 overflow-hidden">
-                    
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1">
+
                     {/* PANEL IZQUIERDO: Catálogo de Productos y Buscador */}
-                    <div className="lg:col-span-7 flex flex-col bg-white border rounded-lg p-4 shadow-sm overflow-hidden">
-                        
-                        {/* Buscador */}
-                        <div className="mb-4">
+                    <div className="lg:col-span-7 flex flex-col bg-[#11212D] border border-[#253745] rounded-2xl p-4 shadow-xl overflow-hidden">
+
+                        {/* Buscador Interactivo para Escáner o Teclado */}
+                        <div className="relative mb-4">
+                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#9BA8AB]">
+                                <Search className="w-4 h-4" />
+                            </div>
                             <input
                                 ref={searchInputRef}
                                 type="text"
@@ -194,162 +240,206 @@ export default function Index({ productos, tasaVes }: Props) {
                                 onChange={(e) => setBusqueda(e.target.value)}
                                 onKeyDown={handleKeyDownSearch}
                                 placeholder="Buscar por producto, modelo, SKU o escanear código de barras..."
-                                className="w-full text-base px-4 py-2.5 rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm"
+                                className="w-full pl-10 pr-10 py-3 rounded-xl bg-[#06141B] border border-[#253745] text-white text-xs md:text-sm focus:outline-hidden focus:border-[#4A5C6A] focus:ring-1 focus:ring-[#4A5C6A] transition-all placeholder:text-[#4A5C6A]"
                                 autoFocus
                             />
+                            <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-[#4A5C6A]">
+                                <Barcode className="w-5 h-5" />
+                            </div>
                         </div>
 
                         {/* Parrilla de Productos */}
-                        <div className="flex-1 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 pr-1">
+                        <div className="flex-1 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 pr-1 max-h-[calc(100vh-230px)]">
                             {productosFiltrados.length === 0 ? (
-                                <div className="col-span-full text-center py-12 text-gray-400">
-                                    No se encontraron productos disponibles.
+                                <div className="col-span-full flex flex-col items-center justify-center py-16 text-[#9BA8AB] space-y-2">
+                                    <Boxes className="w-10 h-10 text-[#253745]" />
+                                    <p className="text-xs">No se encontraron productos disponibles.</p>
                                 </div>
                             ) : (
-                                productosFiltrados.map((prod) => (
-                                    <button
-                                        key={prod.id}
-                                        type="button"
-                                        onClick={() => agregarAlCarrito(prod)}
-                                        className="flex flex-col justify-between p-3 border rounded-xl text-left bg-gray-50 hover:bg-indigo-50 hover:border-indigo-300 transition-all group h-32"
-                                    >
-                                        <div>
-                                            <span className="text-[10px] uppercase font-bold text-gray-400 block truncate">
-                                                {prod.categoria?.nombre || 'General'}
-                                            </span>
-                                            <h3 className="font-semibold text-gray-800 text-xs line-clamp-2 leading-tight group-hover:text-indigo-600">
-                                                {prod.nombre}
-                                            </h3>
-                                        </div>
-                                        <div className="mt-2 flex justify-between items-end">
+                                productosFiltrados.map((prod) => {
+                                    const sinStock = prod.stock_actual <= 0;
+                                    return (
+                                        <button
+                                            key={prod.id}
+                                            type="button"
+                                            disabled={sinStock}
+                                            onClick={() => agregarAlCarrito(prod)}
+                                            className={`group relative flex flex-col justify-between p-3.5 rounded-xl text-left border transition-all cursor-pointer h-36 ${
+                                                sinStock
+                                                    ? 'bg-[#06141B]/40 border-[#253745]/40 opacity-40 cursor-not-allowed'
+                                                    : 'bg-[#06141B] border-[#253745] hover:border-[#4A5C6A] hover:bg-[#253745]/30 active:scale-95'
+                                            }`}
+                                        >
                                             <div>
-                                                <p className="text-sm font-extrabold text-indigo-700">
-                                                    ${prod.precio_venta_usd.toFixed(2)}
-                                                </p>
-                                                {tasaVes > 0 && (
-                                                    <p className="text-[10px] text-gray-500 font-medium">
-                                                        Bs. {(prod.precio_venta_usd * tasaVes).toFixed(2)}
-                                                    </p>
-                                                )}
+                                                <div className="flex items-center justify-between gap-1 mb-1">
+                                                    <span className="text-[10px] uppercase font-bold text-[#9BA8AB] truncate flex items-center gap-1">
+                                                        <Tag className="w-3 h-3 text-[#4A5C6A]" />
+                                                        {prod.categoria?.nombre || 'General'}
+                                                    </span>
+                                                </div>
+                                                <h3 className="font-bold text-[#CCD0CF] text-xs line-clamp-2 leading-snug group-hover:text-white transition-colors">
+                                                    {prod.nombre}
+                                                </h3>
                                             </div>
-                                            <span className="text-[10px] px-1.5 py-0.5 rounded font-bold bg-gray-200 text-gray-700">
-                                                Stock: {prod.stock_actual}
-                                            </span>
-                                        </div>
-                                    </button>
-                                ))
+
+                                            <div className="mt-2 flex items-end justify-between border-t border-[#253745]/50 pt-2">
+                                                <div>
+                                                    <p className="text-sm font-black font-mono text-emerald-400 flex items-center">
+                                                        <DollarSign className="w-3.5 h-3.5" />
+                                                        {Number(prod.precio_venta_usd).toFixed(2)}
+                                                    </p>
+                                                    {tasaVes > 0 && (
+                                                        <p className="text-[10px] text-[#9BA8AB] font-mono font-medium">
+                                                            Bs. {(prod.precio_venta_usd * tasaVes).toFixed(2)}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                <span
+                                                    className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${
+                                                        sinStock
+                                                            ? 'bg-rose-950/40 text-rose-300 border-rose-800/50'
+                                                            : 'bg-[#253745] text-[#CCD0CF] border-[#4A5C6A]/50'
+                                                    }`}
+                                                >
+                                                    {prod.stock_actual}
+                                                </span>
+                                            </div>
+                                        </button>
+                                    );
+                                })
                             )}
                         </div>
                     </div>
 
                     {/* PANEL DERECHO: Carrito de Compras y Cobro */}
-                    <div className="lg:col-span-5 flex flex-col bg-white border rounded-lg shadow-sm overflow-hidden">
-                        
-                        <div className="p-3 bg-gray-800 text-white flex justify-between items-center">
-                            <h2 className="font-bold text-sm tracking-wide">TICKET DE VENTA</h2>
-                            <div className="text-xs bg-gray-700 px-2 py-1 rounded text-gray-200">
-                                Tasa: <span className="font-bold text-green-400">{tasaVes > 0 ? `${tasaVes} VES` : 'Sin Tasa'}</span>
+                    <div className="lg:col-span-5 flex flex-col bg-[#11212D] border border-[#253745] rounded-2xl shadow-xl overflow-hidden">
+
+                        {/* Header Ticket */}
+                        <div className="p-4 bg-[#06141B] border-b border-[#253745] flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                                <ShoppingCart className="w-5 h-5 text-[#9BA8AB]" />
+                                <h2 className="font-extrabold text-xs tracking-wider uppercase text-white">
+                                    Ticket de Venta
+                                </h2>
+                            </div>
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#11212D] border border-[#253745] text-[11px] text-[#9BA8AB] font-semibold">
+                                <Coins className="w-3.5 h-3.5 text-[#4A5C6A]" />
+                                <span>Tasa:</span>
+                                <span className="text-emerald-400 font-mono font-bold">
+                                    {tasaVes > 0 ? `${tasaVes} VES` : 'Sin Tasa'}
+                                </span>
                             </div>
                         </div>
 
                         {/* Listado de Ítems en el Carrito */}
-                        <div className="flex-1 overflow-y-auto p-3 space-y-2 border-b">
+                        <div className="flex-1 overflow-y-auto p-3 space-y-2 max-h-[calc(100vh-380px)] min-h-[180px]">
                             {carrito.length === 0 ? (
-                                <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-2">
-                                    <svg className="w-12 h-12 stroke-current opacity-50" fill="none" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />
-                                    </svg>
-                                    <p className="text-sm">Carrito vacío. Selecciona productos a la izquierda.</p>
+                                <div className="h-full flex flex-col items-center justify-center text-[#9BA8AB] space-y-2 py-10">
+                                    <ShoppingCart className="w-10 h-10 text-[#253745]" />
+                                    <p className="text-xs">Carrito vacío. Selecciona productos a la izquierda.</p>
                                 </div>
                             ) : (
                                 carrito.map((item) => (
-                                    <div key={item.producto_id} className="flex justify-between items-center bg-gray-50 p-2.5 rounded-lg border text-xs">
-                                        <div className="flex-1 min-w-0 pr-2">
-                                            <p className="font-bold text-gray-800 truncate">{item.nombre}</p>
-                                            <p className="text-gray-400">${item.precio_unitario_usd.toFixed(2)} c/u</p>
+                                    <div
+                                        key={item.producto_id}
+                                        className="flex items-center justify-between bg-[#06141B] p-3 rounded-xl border border-[#253745] text-xs gap-2"
+                                    >
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-bold text-[#CCD0CF] truncate">{item.nombre}</p>
+                                            <p className="text-[11px] text-[#9BA8AB] font-mono">
+                                                ${item.precio_unitario_usd.toFixed(2)} c/u
+                                            </p>
                                         </div>
 
                                         {/* Controles Cantidad */}
-                                        <div className="flex items-center space-x-1">
+                                        <div className="flex items-center gap-1 bg-[#11212D] p-1 rounded-lg border border-[#253745]">
                                             <button
                                                 type="button"
                                                 onClick={() => actualizarCantidad(item.producto_id, item.cantidad - 1)}
-                                                className="w-6 h-6 bg-gray-200 text-gray-800 rounded font-bold hover:bg-gray-300"
+                                                className="w-6 h-6 flex items-center justify-center bg-[#253745] hover:bg-[#4A5C6A] text-white rounded-md transition-colors cursor-pointer"
                                             >
-                                                -
+                                                <Minus className="w-3 h-3" />
                                             </button>
-                                            <span className="w-8 text-center font-bold text-sm">{item.cantidad}</span>
+                                            <span className="w-7 text-center font-bold text-xs text-white font-mono">
+                                                {item.cantidad}
+                                            </span>
                                             <button
                                                 type="button"
                                                 onClick={() => actualizarCantidad(item.producto_id, item.cantidad + 1)}
-                                                className="w-6 h-6 bg-gray-200 text-gray-800 rounded font-bold hover:bg-gray-300"
+                                                className="w-6 h-6 flex items-center justify-center bg-[#253745] hover:bg-[#4A5C6A] text-white rounded-md transition-colors cursor-pointer"
                                             >
-                                                +
+                                                <Plus className="w-3 h-3" />
                                             </button>
                                         </div>
 
-                                        <div className="w-20 text-right font-extrabold text-indigo-700 text-sm">
-                                            ${(item.cantidad * item.precio_unitario_usd).toFixed(2)}
+                                        <div className="w-20 text-right font-black font-mono text-emerald-400 text-xs">
+                                            ${ (item.cantidad * item.precio_unitario_usd).toFixed(2) }
                                         </div>
 
                                         <button
                                             type="button"
                                             onClick={() => eliminarDelCarrito(item.producto_id)}
-                                            className="ml-2 text-red-500 hover:text-red-700 font-bold p-1"
+                                            className="p-1 text-[#9BA8AB] hover:text-rose-400 transition-colors cursor-pointer"
                                         >
-                                            ✕
+                                            <X className="w-4 h-4" />
                                         </button>
                                     </div>
                                 ))
                             )}
                         </div>
 
-                        {/* Formulario de Checkout */}
-                        <form onSubmit={handleProcesarVenta} className="p-4 space-y-3 bg-gray-50">
-                            
-                            <div className="grid grid-cols-2 gap-2">
-                                <div>
-                                    <label className="block text-xs font-semibold text-gray-600">Método de Pago</label>
+                        {/* Formulario Checkout */}
+                        <form onSubmit={handleProcesarVenta} className="p-4 space-y-4 bg-[#06141B] border-t border-[#253745]">
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1">
+                                    <label className="block text-[10px] font-bold uppercase tracking-wider text-[#9BA8AB]">
+                                        Método de Pago
+                                    </label>
                                     <select
                                         value={data.metodo_pago}
                                         onChange={(e) => setData('metodo_pago', e.target.value)}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-xs font-medium focus:border-indigo-500 focus:ring-indigo-500"
+                                        className="w-full px-3 py-2 rounded-xl bg-[#11212D] border border-[#253745] text-white text-xs font-medium focus:outline-hidden focus:border-[#4A5C6A] transition-all"
                                     >
-                                        <option value="efectivo_usd">Efectivo ($ USD)</option>
-                                        <option value="efectivo_ves">Efectivo (Bs. VES)</option>
-                                        <option value="pago_movil">Pago Móvil</option>
-                                        <option value="zelle">Zelle</option>
-                                        <option value="punto">Punto de Venta</option>
+                                        <option value="efectivo_usd" className="bg-[#11212D]">Efectivo ($ USD)</option>
+                                        <option value="efectivo_ves" className="bg-[#11212D]">Efectivo (Bs. VES)</option>
+                                        <option value="pago_movil" className="bg-[#11212D]">Pago Móvil</option>
+                                        <option value="zelle" className="bg-[#11212D]">Zelle</option>
+                                        <option value="punto" className="bg-[#11212D]">Punto de Venta</option>
                                     </select>
                                 </div>
 
-                                <div>
-                                    <label className="block text-xs font-semibold text-gray-600">Descuento ($ USD)</label>
+                                <div className="space-y-1">
+                                    <label className="block text-[10px] font-bold uppercase tracking-wider text-[#9BA8AB]">
+                                        Descuento ($ USD)
+                                    </label>
                                     <input
                                         type="number"
                                         step="0.01"
                                         min="0"
                                         value={data.descuento_usd}
                                         onChange={(e) => setData('descuento_usd', e.target.value)}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-xs focus:border-indigo-500 focus:ring-indigo-500"
+                                        className="w-full px-3 py-2 rounded-xl bg-[#11212D] border border-[#253745] text-white text-xs font-mono focus:outline-hidden focus:border-[#4A5C6A] transition-all"
                                     />
                                 </div>
                             </div>
 
                             {/* Resumen Totales */}
-                            <div className="bg-white p-3 rounded-lg border space-y-1">
-                                <div className="flex justify-between text-xs text-gray-500">
+                            <div className="bg-[#11212D] p-3.5 rounded-xl border border-[#253745] space-y-1.5">
+                                <div className="flex justify-between text-xs text-[#9BA8AB]">
                                     <span>Subtotal:</span>
-                                    <span>${subtotalUsd.toFixed(2)}</span>
+                                    <span className="font-mono font-semibold text-[#CCD0CF]">${subtotalUsd.toFixed(2)}</span>
                                 </div>
-                                <div className="flex justify-between text-lg font-black text-gray-900 border-t pt-1">
-                                    <span>TOTAL USD:</span>
-                                    <span className="text-indigo-600">${totalUsd.toFixed(2)}</span>
+                                <div className="flex justify-between items-baseline text-lg font-black text-white border-t border-[#253745] pt-1.5">
+                                    <span className="text-xs uppercase tracking-wider text-[#9BA8AB]">Total USD:</span>
+                                    <span className="font-mono text-emerald-400 text-xl">${totalUsd.toFixed(2)}</span>
                                 </div>
                                 {tasaVes > 0 && (
-                                    <div className="flex justify-between text-xs font-bold text-green-700 pt-0.5">
-                                        <span>TOTAL VES:</span>
-                                        <span>Bs. {totalVes.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                    <div className="flex justify-between items-center text-xs font-bold text-[#CCD0CF] pt-0.5">
+                                        <span className="text-[10px] uppercase text-[#9BA8AB]">Total VES:</span>
+                                        <span className="font-mono">
+                                            Bs. {totalVes.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        </span>
                                     </div>
                                 )}
                             </div>
@@ -357,8 +447,9 @@ export default function Index({ productos, tasaVes }: Props) {
                             <button
                                 type="submit"
                                 disabled={processing || carrito.length === 0}
-                                className="w-full py-3 bg-emerald-600 text-white font-black text-sm rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition-all shadow-md"
+                                className="w-full py-3.5 rounded-xl bg-[#253745] hover:bg-[#4A5C6A] text-white font-black text-xs uppercase tracking-wider border border-[#4A5C6A]/60 shadow-lg disabled:opacity-40 transition-all cursor-pointer active:scale-95 flex items-center justify-center gap-2"
                             >
+                                <Zap className="w-4 h-4 text-amber-400 fill-amber-400/20" />
                                 {processing ? 'PROCESANDO VENTA...' : 'COBRAR / PROCESAR VENTA'}
                             </button>
                         </form>

@@ -6,9 +6,9 @@ use App\Models\Compra;
 use App\Models\DetalleCompra;
 use App\Models\LoteInventario;
 use App\Models\Producto;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Exception;
 
 class CompraService
 {
@@ -43,7 +43,7 @@ class CompraService
 
             // 1. Crear la Compra
             $compra = Compra::create([
-                'numero' => 'CMP-' . strtoupper(uniqid()),
+                'numero' => 'CMP-'.strtoupper(uniqid()),
                 'proveedor_id' => $datos['proveedor_id'],
                 'factura_proveedor' => $datos['factura_proveedor'] ?? null,
                 'fecha_compra' => $datos['fecha_compra'] ?? now(),
@@ -71,21 +71,21 @@ class CompraService
                 ]);
 
                 // Generar código de lote único (ejemplo: LOT-20261015-A1B2)
-                $codigoLote = 'LOT-' . date('Ymd') . '-' . strtoupper(Str::random(4));
+                $codigoLote = 'LOT-'.date('Ymd').'-'.strtoupper(Str::random(4));
 
                 // Dentro del foreach en registrarCompra():
-$codigoLote = 'LOT-' . date('Ymd') . '-' . strtoupper(Str::random(4));
+                $codigoLote = 'LOT-'.date('Ymd').'-'.strtoupper(Str::random(4));
 
-LoteInventario::create([
-    'detalle_compra_id'   => $detalle->id,
-    'producto_id'          => $item['producto_id'],
-    'proveedor_id'         => $datos['proveedor_id'],
-    'codigo_lote'          => $codigoLote,
-    'cantidad_recibida'    => $item['cantidad'],
-    'cantidad_disponible'  => $item['cantidad'],
-    'costo_unitario_usd'   => $item['costo_unitario_usd'],
-    'fecha_recepcion'      => $datos['fecha_compra'] ?? now(),
-]);
+                LoteInventario::create([
+                    'detalle_compra_id' => $detalle->id,
+                    'producto_id' => $item['producto_id'],
+                    'proveedor_id' => $datos['proveedor_id'],
+                    'codigo_lote' => $codigoLote,
+                    'cantidad_recibida' => $item['cantidad'],
+                    'cantidad_disponible' => $item['cantidad'],
+                    'costo_unitario_usd' => $item['costo_unitario_usd'],
+                    'fecha_recepcion' => $datos['fecha_compra'] ?? now(),
+                ]);
 
                 // Incrementar stock global del producto
                 $producto = Producto::findOrFail($item['producto_id']);

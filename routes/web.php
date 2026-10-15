@@ -19,7 +19,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/tasas-cambio', [TasaCambioController::class, 'index'])->name('tasas-cambio.index');
     Route::post('/tasas-cambio', [TasaCambioController::class, 'store'])->name('tasas-cambio.store');
     Route::patch('/tasas-cambio/{tasaCambio}/activar', [TasaCambioController::class, 'activar'])->name('tasas-cambio.activar');
-    Route::resource('proveedores', ProveedorController::class)->only(['index', 'store', 'update']);
+    Route::resource('proveedores', ProveedorController::class)->only(['index', 'store', 'update'])->parameters(['proveedores' => 'proveedor']);
     Route::resource('categorias', CategoriaController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::resource('productos', ProductoController::class)->only(['index', 'store', 'update']);
     Route::get('/pos', [PosController::class, 'index'])->name('pos.index');

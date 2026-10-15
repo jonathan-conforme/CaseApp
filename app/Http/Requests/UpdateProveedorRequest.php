@@ -12,7 +12,7 @@ class UpdateProveedorRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,7 +23,14 @@ class UpdateProveedorRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+           'nombre' => ['required', 'string', 'max:150'],
+            'tipo_documento' => ['nullable', 'string', 'max:20'],
+            'numero_documento' => ['nullable', 'string', 'max:50'],
+            'telefono' => ['nullable', 'string', 'max:50'],
+            'correo_electronico' => ['nullable', 'email', 'max:150'],
+            'direccion' => ['nullable', 'string'],
+            'notas' => ['nullable', 'string'],
+            'activo' => ['boolean'],
         ];
     }
 }

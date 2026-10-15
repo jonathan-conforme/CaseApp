@@ -4,7 +4,19 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, DollarSign, Folder, LayoutGrid, Users, Tags } from 'lucide-react';
+import {
+    LayoutGrid,
+    Coins,
+    Contact2,
+    Tags,
+    Package,
+    ShoppingBag,
+    ShoppingCart,
+    FolderGit2,
+    BookOpen,
+    Layers,
+    Sparkles,
+} from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -13,15 +25,15 @@ const mainNavItems: NavItem[] = [
         url: '/dashboard',
         icon: LayoutGrid,
     },
-   {
+    {
         title: 'Tasas de Cambio',
-        url: '/tasas-cambio', // o route('tasas-cambio.index')
-        icon: DollarSign,
+        url: '/tasas-cambio',
+        icon: Coins,
     },
     {
         title: 'Proveedores',
         url: '/proveedores',
-        icon: Users,
+        icon: Contact2,
     },
     {
         title: 'Categorías',
@@ -31,40 +43,45 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Productos',
         url: '/productos',
-        icon: Folder,
+        icon: Package,
     },
     {
         title: 'Compras',
         url: '/compras',
-        icon: Folder,
+        icon: ShoppingBag,
     },
     {
         title: 'POS',
         url: '/pos',
-        icon: Folder,
-    }
+        icon: ShoppingCart,
+    },
 ];
 
 const footerNavItems: NavItem[] = [
     {
-        title: 'Repository',
-        url: 'https://github.com/laravel/react-starter-kit',
-        icon: Folder,
+        title: 'Planes',
+        url: '/dashboard',
+        icon: Layers,
     },
     {
-        title: 'Documentation',
-        url: 'https://laravel.com/docs/starter-kits',
-        icon: BookOpen,
+        title: 'Suscribirse',
+        url: '/dashboard',
+        icon: Sparkles,
     },
+    {
+        title: 'Soporte',
+        url: '/dashboard',
+        icon: BookOpen,
+    }
 ];
 
 export function AppSidebar() {
     return (
-        <Sidebar collapsible="icon" variant="inset">
-            <SidebarHeader>
+        <Sidebar collapsible="icon" variant="inset" className="border-r border-[#253745] bg-[#06141B]">
+            <SidebarHeader className="border-b border-[#253745]/60 bg-[#06141B]">
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
+                        <SidebarMenuButton size="lg" asChild className="hover:bg-[#11212D]">
                             <Link href="/dashboard" prefetch>
                                 <AppLogo />
                             </Link>
@@ -73,11 +90,11 @@ export function AppSidebar() {
                 </SidebarMenu>
             </SidebarHeader>
 
-            <SidebarContent>
+            <SidebarContent className="bg-[#06141B]">
                 <NavMain items={mainNavItems} />
             </SidebarContent>
 
-            <SidebarFooter>
+            <SidebarFooter className="border-t border-[#253745]/60 bg-[#06141B]">
                 <NavFooter items={footerNavItems} className="mt-auto" />
                 <NavUser />
             </SidebarFooter>

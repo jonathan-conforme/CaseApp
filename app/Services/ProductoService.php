@@ -4,14 +4,16 @@ namespace App\Services;
 
 use App\Models\Producto;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class ProductoService
 {
-    public function obtenerTodos(): Collection
+    public function obtenerTodos(int $porPagina =15): LengthAwarePaginator
     {
         return Producto::with(['categoria', 'proveedores'])
             ->orderBy('nombre')
-            ->get();
+            ->paginate($porPagina)
+            ->withQueryString();
     }
 
     public function crear(array $datos): Producto

@@ -44,7 +44,8 @@ class CompraController extends Controller
         return Inertia::render('Compras/Index', [
             'compras' => Compra::with(['proveedor', 'detalles.producto'])
                 ->orderBy('fecha_compra', 'desc')
-                ->get(),
+                ->paginate(15)
+                ->withQueryString(),
             'proveedores' => $this->proveedorService->listarActivos(),
             'productos' => $this->productoService->obtenerTodos(),
             'tasaVes' => (float) $tasaVes,
