@@ -16,6 +16,7 @@ class Venta extends Model
 
     protected $fillable = [
         'numero',
+        'fecha venta',
         'tasas_cambio_id',
         'tasa_cambio_ves_por_usd',
         'subtotal_usd',

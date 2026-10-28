@@ -8,14 +8,13 @@ use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\CompraController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\VentaController;
 use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('welcome');
-})->name('home');
+Route::redirect('/', '/login');
 
 Route::middleware(['auth'])->group(function () {
-   
+
     Route::get('/tasas-cambio', [TasaCambioController::class, 'index'])->name('tasas-cambio.index');
     Route::post('/tasas-cambio', [TasaCambioController::class, 'store'])->name('tasas-cambio.store');
     Route::patch('/tasas-cambio/{tasaCambio}/activar', [TasaCambioController::class, 'activar'])->name('tasas-cambio.activar');
@@ -24,9 +23,11 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('productos', ProductoController::class)->only(['index', 'store', 'update']);
     Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
     Route::post('/pos', [PosController::class, 'store'])->name('pos.store');
-    
+
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('compras', CompraController::class)->only(['index', 'store']);
+    Route::get('/ventas/historial', [VentaController::class, 'index'])->name('ventas.historial');
+    Route::get('/ventas/pdf', [VentaController::class, 'descargarPdf'])->name('ventas.pdf');
 });
 
 require __DIR__.'/settings.php';

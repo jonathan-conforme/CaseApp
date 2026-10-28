@@ -3,64 +3,54 @@
 namespace App\Http\Controllers;
 
 use App\Models\Venta;
-use App\Http\Requests\StoreVentaRequest;
-use App\Http\Requests\UpdateVentaRequest;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class VentaController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Request $request): Response
     {
-        //
-    }
+        $query = Venta::query()
+            ->where('estado', 'completado')
+            ->with([
+                'creador:id,name',
+                'detalles.producto:id,nombre',
+                'detalles.lotesConsumidos.lote.proveedor:id,nombre',
+            ]);
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+        if ($request->filled('buscar')) {
+            $query->where('numero', 'like', '%' . trim($request->buscar) . '%');
+        }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreVentaRequest $request)
-    {
-        //
-    }
+        if ($request->filled('fecha_inicio')) {
+            $query->whereDate('created_at', '>=', $request->fecha_inicio);
+        }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Venta $venta)
-    {
-        //
-    }
+        if ($request->filled('fecha_fin')) {
+            $query->whereDate('created_at', '<=', $request->fecha_fin);
+        }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Venta $venta)
-    {
-        //
-    }
+        if ($request->filled('metodo_pago')) {
+            $query->where('metodo_pago', $request->metodo_pago);
+        }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateVentaRequest $request, Venta $venta)
-    {
-        //
-    }
+        $resumen = [
+            'total_ventas_usd'   => (float) (clone $query)->sum('total_usd'),
+            'total_ventas_ves'   => (float) (clone $query)->sum('total_ves'),
+            'costo_total_usd'    => (float) (clone $query)->sum('costo_total_usd'),
+            'ganancia_total_usd' => (float) (clone $query)->sum('ganancia_total_usd'),
+            'cantidad_ventas'    => (int)   (clone $query)->count(),
+        ];
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Venta $venta)
-    {
-        //
+        $ventas = $query->orderBy('created_at', 'desc')
+            ->paginate(15)
+            ->withQueryString();
+
+        return Inertia::render('Ventas/Historial', [
+            'ventas'  => $ventas,
+            'resumen' => $resumen,
+            'filters' => $request->only(['buscar', 'fecha_inicio', 'fecha_fin', 'metodo_pago']),
+        ]);
     }
 }

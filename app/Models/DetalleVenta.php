@@ -23,6 +23,11 @@ class DetalleVenta extends Model
         'ganancia_usd',
     ];
 
+    public function venta(): BelongsTo
+    {
+        return $this->belongsTo(Venta::class, 'venta_id');
+    }
+
     public function producto(): BelongsTo
     {
         return $this->belongsTo(Producto::class, 'producto_id');
@@ -31,5 +36,11 @@ class DetalleVenta extends Model
     public function lotesConsumidos(): HasMany
     {
         return $this->hasMany(DetalleVentaLote::class, 'detalle_venta_id');
+    }
+    // app/Models/DetalleVenta.php
+
+    public function loteInventario()
+    {
+        return $this->belongsTo(LoteInventario::class, 'lote_inventario_id');
     }
 }

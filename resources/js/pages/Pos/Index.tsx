@@ -209,19 +209,7 @@ export default function Index({ productos, tasaVes }: Props) {
 
             <div className="min-h-[calc(100vh-80px)] bg-[#06141B] text-[#CCD0CF] p-3 md:p-6 flex flex-col gap-4">
 
-                {/* Banner de Errores o Mensajes */}
-                {pageErrors?.error && (
-                    <div className="flex items-center gap-3 p-3 bg-[#11212D] border border-rose-500/30 text-rose-300 rounded-xl text-xs font-medium shadow-sm">
-                        <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-                        <span>{pageErrors.error}</span>
-                    </div>
-                )}
-                {flash?.message && (
-                    <div className="flex items-center gap-3 p-3 bg-[#11212D] border border-emerald-500/30 text-emerald-300 rounded-xl text-xs font-medium shadow-sm">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                        <span>{flash.message}</span>
-                    </div>
-                )}
+               
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1">
 

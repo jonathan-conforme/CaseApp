@@ -482,7 +482,7 @@ export default function Index({ compras, proveedores = [], productos, tasaVes }:
                                         <input
                                             type="number"
                                             min="1"
-                                            placeholder="Cant."
+                                            placeholder="Cantidad"
                                             value={itemActual.cantidad}
                                             onChange={(e) => setItemActual({ ...itemActual, cantidad: Number(e.target.value) })}
                                             className="w-full px-3 py-2 rounded-lg bg-[#11212D] border border-[#253745] text-white text-xs focus:outline-hidden focus:border-[#4A5C6A] transition-all"

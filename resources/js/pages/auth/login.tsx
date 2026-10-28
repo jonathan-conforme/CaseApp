@@ -162,7 +162,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             <div className="flex items-center justify-between">
                                 <Label htmlFor="password" className="text-xs font-bold uppercase tracking-wider text-[#9BA8AB]">
                                     Contraseña
-                                </Label>
+                                </Label> {/* Contraseña
                                 {canResetPassword && (
                                     <TextLink
                                         href={route('password.request')}
@@ -171,7 +171,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                     >
                                         ¿Olvidaste tu contraseña?
                                     </TextLink>
-                                )}
+                                )}*/}
                             </div>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#4A5C6A]">

@@ -45,7 +45,7 @@ class PosController extends Controller
 {
     try {
         $venta = $this->ventaService->procesarVenta($request->validated(), auth()->id());
-        
+
         // Cargar detalles y productos para el ticket de impresión
         $venta->load(['detalles.producto', 'creador']);
 
